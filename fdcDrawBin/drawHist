@@ -1,0 +1,317 @@
+#!/usr/bin/env python
+def processMcHist(hist, list_1, list_2):
+  print 'process MC ...'
+  name = hist.GetName()+'_rw'
+  from array import array
+  binContent = []
+  binPos = array('d')
+  binPos.append(hist.GetXaxis().GetXmin())
+  for eachBin in xrange(hist.GetNbinsX()):
+    binContent.append(hist.GetBinContent(eachBin))
+    binPos.append(binPos[eachBin] + hist.GetBinWidth(eachBin))
+
+  newBinContent = binContent
+  newBinPos = binPos
+  # test < 5
+  def getNeedMergeBin(inputBinContent):
+    needMergeBin = []
+    for eachBin in xrange(1, len(inputBinContent)-1):
+      if inputBinContent[eachBin] <= 5:
+        needMergeBin.append(eachBin)
+    return needMergeBin
+
+  returnMergeBin_1 = list_1
+  workMergeBin = []
+  for eachBin in returnMergeBin_1:
+    workMergeBin.append(eachBin)
+
+  # merge continue list
+  binLen = len(workMergeBin)
+  newBinLen = binLen
+  offset = 0
+  removeTrue = False
+  while True:
+    for eachBin in xrange(len(workMergeBin)):
+      eachBin = eachBin - offset
+      if removeTrue == False and workMergeBin[eachBin] - 1 == workMergeBin[eachBin - 1]:
+        newBinContent[workMergeBin[eachBin] - offset - 1] = newBinContent[workMergeBin[eachBin] - offset - 1]\
+            + newBinContent[workMergeBin[eachBin] - offset]
+	newBinContent.pop(workMergeBin[eachBin]- offset)
+	newBinPos.pop(workMergeBin[eachBin] - offset)
+	workMergeBin.pop(eachBin)
+	newBinLen = len(workMergeBin)
+	offset = offset + 1
+	removeTrue = True
+	if len(workMergeBin) <= eachBin:
+	  break
+      else:
+	removeTrue = False
+    if binLen == newBinLen:
+      break
+    binLen = newBinLen
+  
+  ## test < 5
+  returnMergeBin_2 = list_2
+  workMergeBin = []
+  for eachBin in returnMergeBin_2:
+    workMergeBin.append(eachBin)
+
+  offset = 0
+  for eachBin in xrange(len(workMergeBin)):
+    newBinContent[workMergeBin[eachBin] - offset - 1] = newBinContent[workMergeBin[eachBin] - offset - 1]\
+        + newBinContent[workMergeBin[eachBin] - offset]
+    newBinContent.pop(workMergeBin[eachBin]-offset-1)
+    newBinPos.pop(workMergeBin[eachBin]-offset-1)
+    offset = offset + 1	
+
+
+  from ROOT import TH1F
+  newHist = TH1F(name, name, len(newBinContent), newBinPos)
+  for eachBin in xrange(len(newBinContent)):
+    newHist.SetBinContent(eachBin, newBinContent[eachBin])
+
+  #from ROOT import TPostScript, TCanvas
+  #ps = TPostScript("temp.ps")
+  #c = TCanvas()
+  #newHist.Draw("elp")
+  #ps.Close()
+
+  return newHist
+
+def processRealHist(hist):
+  print 'process Real...'
+  name = hist.GetName()+'_rw'
+  from array import array
+  binContent = []
+  binPos = array('d')
+  binPos.append(hist.GetXaxis().GetXmin())
+  for eachBin in xrange(hist.GetNbinsX()):
+    binContent.append(hist.GetBinContent(eachBin))
+    binPos.append(binPos[eachBin] + hist.GetBinWidth(eachBin))
+
+  newBinContent = binContent
+  newBinPos = binPos
+  # test < 5
+  def getNeedMergeBin(inputBinContent):
+    needMergeBin = []
+    for eachBin in xrange(1, len(inputBinContent)-1):
+      if inputBinContent[eachBin] <= 5:
+        needMergeBin.append(eachBin)
+    return needMergeBin
+
+  returnMergeBin_1 = getNeedMergeBin(newBinContent)
+  workMergeBin = []
+  for eachBin in returnMergeBin_1:
+    workMergeBin.append(eachBin)
+
+  # merge continue list
+  binLen = len(workMergeBin)
+  newBinLen = binLen
+  offset = 0
+  removeTrue = False
+  while True:
+    for eachBin in xrange(len(workMergeBin)):
+      eachBin = eachBin - offset
+      if removeTrue == False and workMergeBin[eachBin] - 1 == workMergeBin[eachBin - 1]:
+        newBinContent[workMergeBin[eachBin] - offset - 1] = newBinContent[workMergeBin[eachBin] - offset - 1]\
+            + newBinContent[workMergeBin[eachBin] - offset]
+	newBinContent.pop(workMergeBin[eachBin]- offset)
+	newBinPos.pop(workMergeBin[eachBin] - offset )
+	workMergeBin.pop(eachBin)
+	newBinLen = len(workMergeBin)
+	offset = offset + 1
+	removeTrue = True
+	if len(workMergeBin) <= eachBin:
+	  break
+      else:
+	removeTrue = False
+    if binLen == newBinLen:
+      break
+    binLen = newBinLen
+  
+  # test < 5
+  returnMergeBin_2 = getNeedMergeBin(newBinContent)
+  workMergeBin = []
+  for eachBin in returnMergeBin_2:
+    workMergeBin.append(eachBin)
+
+  offset = 0
+  for eachBin in xrange(len(workMergeBin)):
+    newBinContent[workMergeBin[eachBin] - offset - 1] = newBinContent[workMergeBin[eachBin] - offset - 1]\
+        + newBinContent[workMergeBin[eachBin] - offset]
+    newBinContent.pop(workMergeBin[eachBin]-offset-1)
+    newBinPos.pop(workMergeBin[eachBin]-offset-1)
+    offset = offset + 1	
+
+
+  from ROOT import TH1F
+  newHist = TH1F(name, name, len(newBinContent), newBinPos)
+  for eachBin in xrange(len(newBinContent)):
+    newHist.SetBinContent(eachBin, newBinContent[eachBin])
+
+  #from ROOT import TPostScript, TCanvas
+  #ps = TPostScript("temp.ps")
+  #c = TCanvas()
+  #newHist.Draw("elp")
+  #ps.Close()
+
+  return [newHist, returnMergeBin_1,  returnMergeBin_2]
+
+def draw():
+  from ROOT import TFile, TH1F
+  d = TFile("dplot.root", "r")
+  h_list_01  = processRealHist(d.Get("h1"))
+  d_h01      = h_list_01[0]
+
+  h_list_02  = processRealHist(d.Get("h2"))
+  d_h02      = h_list_02[0] 
+
+  h_list_03  = processRealHist(d.Get("h3"))
+  d_h03      = h_list_03[0] 
+
+  h_list_04  = processRealHist(d.Get("h4"))
+  d_h04      = h_list_04[0] 
+
+  h_list_05  = processRealHist(d.Get("h5"))
+  d_h05      = h_list_05[0] 
+
+  h_list_06  = processRealHist(d.Get("h6"))
+  d_h06      = h_list_06[0] 
+
+  #d_h01  = d.Get("h1")
+  #d_h02  = d.Get("h2")
+  #d_h03  = d.Get("h3")
+  #d_h04  = d.Get("h4")
+  #d_h05  = d.Get("h5")
+  #d_h06  = d.Get("h6")
+  d_h07  = d.Get("h7")
+  
+  m = TFile("mplot.root", "r")
+  m_h01 = processMcHist(m.Get("h1"),  h_list_01[1],  h_list_01[2])
+  m_h02 = processMcHist(m.Get("h2"),  h_list_02[1],  h_list_02[2])
+  m_h03 = processMcHist(m.Get("h3"),  h_list_03[1],  h_list_03[2])
+  m_h04 = processMcHist(m.Get("h4"),  h_list_04[1],  h_list_04[2])
+  m_h05 = processMcHist(m.Get("h5"),  h_list_05[1],  h_list_05[2])
+  m_h06 = processMcHist(m.Get("h6"),  h_list_06[1],  h_list_06[2])
+  #m_h01 = m.Get("h1")
+  #m_h02 = m.Get("h2")
+  #m_h03 = m.Get("h3")
+  #m_h04 = m.Get("h4")
+  #m_h05 = m.Get("h5")
+  #m_h06 = m.Get("h6")
+  m_h07 = m.Get("h7")
+  
+  d_h01.SetLineColor(1)
+  m_h01.SetLineColor(2)
+  
+  d_h02.SetLineColor(1)
+  m_h02.SetLineColor(2)
+  
+  d_h03.SetLineColor(1)
+  m_h03.SetLineColor(2)
+
+  d_h04.SetLineColor(1)
+  m_h04.SetLineColor(2)
+
+  d_h05.SetLineColor(1)
+  m_h05.SetLineColor(2)
+
+  d_h06.SetLineColor(1)
+  m_h06.SetLineColor(2)
+
+  def calChi2(mc, data):
+    nBins = data.GetNbinsX()
+    chi2List = [(data.GetBinContent(i)-mc.GetBinContent(i))**2/mc.GetBinContent(i) for i in range(nBins) if mc.GetBinContent(i)>0]
+    #print 'chi2: ', chi2List
+    chi2 = reduce(lambda x1, x2: x1 + x2, chi2List)
+    return chi2/nBins
+
+  from ROOT import TLegend
+  leg_peta = TLegend(0.3, 0.6, 0.7, 0.8)
+  leg_peta.SetHeader('#chi^{2} / nbin = ' + str(calChi2(m_h01, d_h01)))
+  leg_peta.AddEntry( d_h01 , "Data"          , "lp")
+  leg_peta.AddEntry( m_h01 , "Mc Integration", "lp")
+  
+  leg_pbeta = TLegend(0.3, 0.6, 0.7, 0.8)
+  leg_pbeta.SetHeader('#chi^{2} / nbin = ' + str(calChi2(m_h02, d_h02)))
+  leg_pbeta.AddEntry( d_h02 , "Data"          , "lp")
+  leg_pbeta.AddEntry( m_h02 , "Mc Integration", "lp")
+  
+  leg_ppb = TLegend(0.3, 0.6, 0.7, 0.8)
+  leg_ppb.SetHeader('#chi^{2} / nbin = ' + str(calChi2(m_h03, d_h03)))
+  leg_ppb.AddEntry( d_h03 , "Data"          , "lp")
+  leg_ppb.AddEntry( m_h03 , "Mc Integration", "lp")
+  
+  cos_peta_at_ppb = TLegend(0.3, 0.6, 0.7, 0.8)
+  cos_peta_at_ppb.SetHeader('#chi^{2} / nbin = ' + str(calChi2(m_h04, d_h04)))
+  cos_peta_at_ppb.AddEntry( d_h04 , "Data"          , "lp")
+  cos_peta_at_ppb.AddEntry( m_h04 , "Mc Integration", "lp")
+  
+  cos_ppb_at_peta = TLegend(0.3, 0.6, 0.7, 0.8)
+  cos_ppb_at_peta.SetHeader('#chi^{2} / nbin = ' + str(calChi2(m_h05, d_h05)))
+  cos_ppb_at_peta.AddEntry( d_h05 , "Data"          , "lp")
+  cos_ppb_at_peta.AddEntry( m_h05 , "Mc Integration", "lp")
+  
+  cos_ppb_at_pbeta = TLegend(0.3, 0.6, 0.7, 0.8)
+  cos_ppb_at_pbeta.SetHeader('#chi^{2} / nbin = ' + str(calChi2(m_h06, d_h06)))
+  cos_ppb_at_pbeta.AddEntry( d_h06 , "Data"          , "lp")
+  cos_ppb_at_pbeta.AddEntry( m_h06 , "Mc Integration", "lp")
+  
+  from ROOT import TPostScript, TCanvas
+  from ROOT import gStyle
+  gStyle.SetPalette(1)
+  ps = TPostScript("test.ps")
+  c = TCanvas()
+  
+  d_h01.Draw("elp")
+  m_h01.Draw("same")
+  leg_peta.Draw()
+  
+  c.Update()
+  ps.NewPage()
+  d_h02.Draw("elp")
+  m_h02.Draw("same")
+  leg_pbeta.Draw()
+  
+  c.Update()
+  ps.NewPage()
+  d_h03.Draw("elp")
+  m_h03.Draw("same")
+  leg_ppb.Draw()
+  
+  c.Update()
+  ps.NewPage()
+  d_h04.Draw("elp")
+  m_h04.Draw("same")
+  cos_peta_at_ppb.Draw()
+  
+  c.Update()
+  ps.NewPage()
+  d_h05.Draw("elp")
+  m_h05.Draw("same")
+  cos_ppb_at_peta.Draw()
+  
+  c.Update()
+  ps.NewPage()
+  d_h06.Draw("elp")
+  m_h06.Draw("same")
+  cos_ppb_at_pbeta.Draw()
+  
+  c.Update()
+  ps.NewPage()
+  m_h07.Draw('colz')
+
+  c.Update()
+  ps.NewPage()
+  d_h07.Draw('colz')
+
+  c.Update()
+  ps.Close()
+
+if __name__ == '__main__':
+  import sys, os
+  os.chdir(sys.argv[1])
+  os.system('h2root mplot.hbook mplot.root')
+  os.system('h2root dplot.hbook dplot.root')
+  draw()
+

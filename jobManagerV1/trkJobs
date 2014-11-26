@@ -1,0 +1,240 @@
+#! /usr/bin/python
+
+import commands
+import string
+import sys
+
+countSucess = 0
+countError = 0
+countQuen = 0
+countRun = 0
+errList = []
+jobDic = {}
+jobList = []
+errFileList = []
+optFileList = []
+logFile = 'qExeLog.txt'
+
+def __getCurrentDic( cmd = 'qstat'):
+  global jobDic
+  jobDic.clear() 
+
+  strJobs = commands.getoutput(cmd)
+  listJobs = strJobs.split('\n')
+  for eachJob in listJobs:
+    jobItems = eachJob.split()
+    temp =jobItems[0].split('.')
+    strId = string.strip(temp[0])
+
+    if strId.isdigit() == 1:
+      jobId = int(strId)
+      jobStat = string.strip(jobItems[4])
+  
+      jobDic[jobId] = jobStat
+  
+def printDic():
+  global jobDic 	
+  
+  jobNum = 0
+  for id, stat in jobDic.iteritems(): 
+    print "job(Id: %d) status: %s" % (id, stat)  
+    jobNum += 1
+    
+  print 'Number of total jobs: ', jobNum  
+
+def __readFile():
+  global logFile
+  global jobList
+  
+  aFile = open(logFile, 'r')
+  jobList = aFile.readlines()
+  aFile.close()
+
+  lineNo = 0
+  for eachItem in jobList:
+    jobList[lineNo] = eachItem[:-1]
+    lineNo += 1
+
+def __writeFile():
+  global logFile
+
+  aList = jobList
+  lineNo = 0
+  for eachItem in aList:
+    aList[lineNo] += '\n'
+    lineNo += 1
+    
+  aFile = open(logFile, 'w')
+  aFile.writelines( aList)
+  aFile.close()
+
+  #print 'log file(' + logFile + ') has been writen'
+
+def __initFileList():
+  global jobList
+  global errFileList
+  global optFileList
+
+  if len(errFileList) == 0:
+    if len(jobList) == 0:
+      __readFile()
+    
+    for eachItem in jobList:
+      jobItems = eachItem.split()
+      
+      jobId = string.strip(jobItems[0])
+      jobFile = string.strip(jobItems[2])
+
+      errFile = jobFile + '.e' + jobId
+      errFileList.append(errFile)
+
+  if len(optFileList) == 0:
+    if len(jobList) == 0:
+      __readFile()
+    
+    for eachItem in jobList:
+      jobItems = eachItem.split()
+      
+      jobId = string.strip(jobItems[0])
+      jobFile = string.strip(jobItems[2])
+
+      optFile = jobFile + '.o' + jobId
+      optFileList.append(optFile)
+      
+def __checkOutput(jobId = 0):
+  if jobId == 0:
+    print 'jobId err when check outup file'
+  
+  if len(errFileList) == 0:
+    __initFileList()
+    
+  for eachFile in errFileList:
+    fileName = eachFile.split('.e')
+    fileNo = fileName[1]
+    if int(fileNo) == jobId:
+      errFile = open(eachFile, 'r')
+      if len(errFile.readlines()) == 0:
+	return 'S'
+      else:
+	return 'E'
+  
+def __update():
+  global jobList
+  __readFile()
+  __getCurrentDic()
+  
+  lineNo = 0
+  for eachItem in jobList:
+    jobItems = eachItem.split()
+    
+    s_jobId = string.strip(jobItems[0])
+    jobId = int(s_jobId)
+
+    jobFile = string.strip(jobItems[2])
+    
+    if jobDic.has_key(jobId):
+      jobStat = jobDic[jobId]
+    else:
+      jobStat = __checkOutput(jobId)
+    
+    jobList[lineNo] = s_jobId + '  ' + jobStat + '  ' + jobFile
+    lineNo += 1
+  
+  __writeFile()
+   
+def clear():
+  global countSucess
+  global countError   
+  global countQuen    
+  global countRun   
+
+  checkStatus()
+
+
+def checkStatus():
+  global jobList
+  global countSucess
+  global countError 
+  global countQuen
+  global countRun  
+  global errList
+  
+  __update()
+
+  for eachItem in jobList:
+    jobItems = eachItem.split()
+    if jobItems[1] == 'S':
+      countSucess += 1
+    elif jobItems[1] == 'E':
+      countError += 1
+      errList.append(jobItems[0])
+    elif jobItems[1] == 'Q':
+      countQuen += 1
+    elif jobItems[1] == 'R':
+      countRun += 1
+    else:
+      print 'Error when count status'
+    
+def __test():
+  cmd = __checkArgs()
+  if cmd == 'update':
+    __update()
+    __writeFile()
+  else:
+    __getCurrentDic(cmd)
+    printDic()
+  
+def __check():
+  global countSucess
+  global countError 
+  global countQuen
+  global countRun  
+  global errList
+
+  checkStatus()
+
+  if (countQuen == 0) and (countRun == 0):
+    return 'Finished'
+  else:
+    return 'Processing'
+  
+
+  
+def __checkArgs():
+  argc = len(sys.argv)
+  if argc == 1:
+    return 'qstat'
+  elif argc == 2:
+    if sys.argv[1] == '-u':
+      return 'update'
+    else:
+      return 'qstat | grep ' + sys.argv[1]
+  elif argc == 3:
+    global logFile 
+    logFile = sys.argv[2]
+    return 'update'
+  else:
+    print 'Error arguments'
+
+if __name__ == "__main__":
+ # __test()
+ print __check()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

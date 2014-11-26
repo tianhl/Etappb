@@ -1,0 +1,27 @@
+#include "$ROOTIOROOT/share/jobOptions_ReadRec.txt"
+#include "$EVENTASSEMBLYROOT/share/EventAssembly.txt"
+#include "$MAGNETICFIELDROOT/share/MagneticField.txt"
+#include "$PPJRHOPIALGROOT/share/jobOptions_Ppjrhopi.txt"
+//#include "$ROOTIOROOT/share/jobOptions_Rec2Root_data.txt"
+#include "jobOptions_Rec2Root_ItemList_data.txt"
+RootWriter.AcceptAlgs += { "Ppjrhopi" };
+
+//Default: beam energy = 1.89GeV, MagneticFieldSvc.RunMode=3;
+//If beam energy = 1.55GeV,   set MagneticFieldSvc.RunMode=2;
+//If beam energy = 2.1GeV,    set MagneticFieldSvc.RunMode=4;
+MagneticFieldSvc.RunMode=3;
+
+// Input REC or DST file name 
+EventCnvSvc.digiRootInputFile = { "/ihepbatch/besd23/offline/cal/hadron/1001_hadorn.root" };
+
+// Set output level threshold (2=DEBUG, 3=INFO, 4=WARNING, 5=ERROR, 6=FATAL )
+MessageSvc.OutputLevel = 5;
+
+// Number of events to be processed (default is 10)
+ApplicationMgr.EvtMax = 1000000;
+
+EventCnvSvc.digiRootOutputFile = "/ihepbatch/besd12/xcao/Pion_data/1001_pion.root";
+
+ApplicationMgr.HistogramPersistency = "ROOT";
+NTupleSvc.Output = { "FILE1 DATAFILE='test.root' OPT='NEW' TYP='ROOT'"};
+

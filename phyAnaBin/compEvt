@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import sys
+f0_name = sys.argv[1]
+f1_name = sys.argv[2]
+print 'input file name: ', f0_name
+print 'input file name: ', f1_name
+
+f0 = open(f0_name, 'r')
+f1 = open(f1_name, 'r')
+
+list0 = f0.readlines()
+list1 = f1.readlines()
+
+print 'There are ',len(list0), ' in ', f0_name 
+print 'There are ',len(list1), ' in ', f1_name 
+
+
+def proessEvt(lines):
+  list = []
+  set = 
+  for eachItem in lines:
+    two = eachItem.split()
+    tuple= (two[0], two[1])
+    list.append(tuple)
+  return list  
+
+evt_list_0 = proessEvt(list0)
+run_set = 
+evt_list_1 = proessEvt(list1)
+
+print evt_list_0

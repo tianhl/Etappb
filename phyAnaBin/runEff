@@ -1,0 +1,59 @@
+#! /usr/bin/python 
+ 
+from math import sqrt 
+def cal(line):
+  list = line.split()
+  list = map(lambda item: float(item), list)
+  moment = list[0] ** 2 + list[1] ** 2 + list[2] ** 2
+  return  sqrt(moment)
+
+if __name__ == '__main__':
+  from ROOT import TFile , TTree
+  import sys, os, array
+  if len(sys.argv) < 3 :
+    print 'arguments error'
+    sys.exit()
+
+  dataFile = os.path.normpath(os.path.abspath(sys.argv[1]))
+  print dataFile
+  
+  fo = TFile(sys.argv[2], 'recreate')
+  tr = TTree('eff', 'eff')
+  pr_Moment = array.array('d', [0])
+  pb_Moment = array.array('d', [0])
+  et_Moment = array.array('d', [0])
+  tr.Branch('pm'  , pr_Moment, 'pm/D'  )  
+  tr.Branch('pbm' , pb_Moment, 'pbm/D' )  
+  tr.Branch('etam', et_Moment, 'etam/D')  
+  pr_Moment[0] =- 999. 
+  pb_Moment[0] =- 999. 
+  et_Moment[0] =- 999. 
+  
+  fi = open(dataFile)
+  i = 0 
+  j = 0
+  while True:
+    line = fi.readline()
+    if len(line) <= 0:
+      break
+    i = i + 1
+    j = j + 1
+    if j == 1:
+      # p
+      pr_Moment[0] = cal(line)
+      pass
+    if j == 2:
+      # pb
+      pb_Moment[0] = cal(line)
+      pass
+    if j == 3:
+      # eta
+      et_Moment[0] = cal(line)
+      # finish
+      j = 0
+      tr.Fill()
+      pass
+
+  fo.Write()
+  fo.Close()
+

@@ -1,0 +1,162 @@
+#!/usr/bin/env python
+def draw(filename):
+  fi = open(filename, 'r')
+  lines = fi.readlines()
+
+  numList = []
+  numIntList = []
+  sVaList = []
+  
+  number = 0
+  for eachLine in lines:
+    minS = 'min s is'
+    minP = eachLine.find(minS)
+    numS = 'mode 1 with diag 1,2'
+    #numS = 'mode 2 with diag 3,4'
+    numP = eachLine.find(numS)
+    if minP > 0:
+      sValue = eachLine[minP+len(minS):]
+      sValue = float(sValue)
+      sVaList.append(sValue)
+      number = number + 1
+    if numP > 0:
+      numF = float(eachLine[:numP].split()[1])*653
+      numList.append(numF)
+      numIntList.append(int(numF))
+
+  print number
+  numDict = {}
+  for eachItem in xrange(len(numList)):
+    numDict[numIntList[eachItem]] = 0
+  for eachItem in xrange((len(sVaList) < len(numList)) and len(sVaList) or len(numList)):
+    if  sVaList[eachItem] < numDict[numIntList[eachItem]]:
+      numDict[numIntList[eachItem]] = sVaList[eachItem]
+
+  numDictList = numDict.keys()
+  numDictList.sort()
+  print numDictList
+
+  from ROOT import TGraph
+  g_1 = TGraph()
+  g_1.SetMarkerStyle(8)
+  #g.SetMarkerSize(9)
+  g_2 = TGraph()
+  g_2.SetMarkerStyle(1)
+  g_2.SetMarkerColor(2)
+  g_3 = TGraph()
+  g_3.SetLineColor(2)
+  g_3.SetLineWidth(3)
+
+  sCut = min(sVaList) + 2.
+
+  fliterDict = {}
+  j = 0
+  for i in xrange(len(numDict)):
+    if  numDict[numDictList[i]] > sCut:
+      continue
+    g_1.SetPoint(j, numDictList[i], numDict[numDictList[i]])
+    fliterDict[numDictList[i]] = numDict[numDictList[i]]
+    j = j + 1
+
+  j = 0
+  for i in xrange(len(numList)):
+    if sVaList[i] > sCut:
+      continue
+    g_2.SetPoint(j, numList[i], sVaList[i])
+    j = j + 1
+  
+  binList  = fliterDict.keys()
+  binList.sort()
+  
+
+  def findMin(list):
+    min = 0
+    pos = -99
+    for i in list:
+      if fliterDict[i] < min:
+	min = fliterDict[i]
+	pos = i
+    return pos
+  
+  def findLeftMin(pos):
+    leftBinList  = binList[:binList.index(pos)]
+    pos = findMin(leftBinList)
+    sortDict[pos]=  fliterDict[pos]
+    return pos
+
+  def findRightMin(pos):     
+    rightBinList = binList[binList.index(pos)+1:]
+    pos = findMin(rightBinList)
+    sortDict[pos]=  fliterDict[pos]
+    return pos
+
+  sortDict = {}
+  minPos = findMin(binList)
+  sortDict[minPos]=  fliterDict[minPos]
+  print 'min position at: ', minPos
+  print 'min s value at:  ', fliterDict[minPos]
+  
+  leftPos = minPos
+  while True:
+    pos = findLeftMin(leftPos)
+    if binList.index(pos) == 0:
+      break
+    leftPos = pos
+
+  rightPos = minPos
+  while True:
+    pos = findRightMin(rightPos)
+    if binList.index(pos) ==  len(binList)-1:
+      break
+    rightPos = pos
+
+  xList = []
+  yList = []
+
+  sortDictList = sortDict.keys()
+  sortDictList.sort()
+  for i in sortDictList:
+    xList.append(i)
+    yList.append(sortDict[i])
+
+  j = 0
+  for i in xrange(len(xList)):
+    if i == len(xList)-2:
+      continue
+    g_3.SetPoint(j, xList[i], yList[i])
+    j = j + 1
+
+  from ROOT import TF1
+  f1 = TF1('f1', 'pol2',  float(xList[0]), float(xList[-1]))
+
+  widthS = float(fliterDict[minPos]) + 0.5
+  leftpoint  = f1.GetX(widthS, float(xList[0]), float(minPos))
+  rightpoint =f1.GetX(widthS, float(minPos), float(xList[-1]))
+  print 'widthS:      ', widthS
+  print 'find left in ', float(xList[0]), ' and ', float(minPos)
+  print 'find right in ', float(minPos), ' and ', float(xList[-1])
+  print 'left point:  ', leftpoint
+  print 'right point: ', rightpoint
+
+  from ROOT import TPostScript, TCanvas
+  ps = TPostScript('numScan.ps')
+  c = TCanvas()
+  ps.NewPage()
+  #g_1.Fit(f1)
+  g_1.Draw('AP')
+  g_2.Draw('P')
+  g_3.Fit(f1)
+  #f1.Draw("same")
+  g_3.Draw('PL')
+  ps.Close()
+
+  
+#  from time import sleep
+#  while 1:
+#    sleep(5)
+#
+
+if __name__ == '__main__':
+  import sys, os
+  draw(sys.argv[1])
+

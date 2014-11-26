@@ -1,0 +1,65 @@
+#! /usr/bin/python 
+ 
+
+if __name__ == '__main__':
+  from ROOT import TFile, TTree, TH1F, TCanvas, TPostScript
+  from ROOT import gROOT
+  import sys, os, array, time
+  if len(sys.argv) < 3 :
+    print 'arguments error'
+    sys.exit()
+  
+  ff = TFile(sys.argv[1])
+  fs = TFile(sys.argv[2])
+
+  tf = ff.Get('eff')
+  ts = fs.Get('eff')
+
+  fpm  = array.array('d', [0])
+  spm  = array.array('d', [0])
+  fpbm = array.array('d', [0])
+  spbm = array.array('d', [0])
+
+  tf.SetBranchAddress('pm',  fpm)
+  ts.SetBranchAddress('pm',  spm)
+  tf.SetBranchAddress('pbm', fpbm)
+  ts.SetBranchAddress('pbm', spbm)
+
+  hpf = TH1F('hpf', 'hpf', 50, 0.0, 1.5)
+  hps = TH1F('hps', 'hps', 50, 0.0, 1.5)
+  hpe = TH1F('hpe', 'hpe', 50, 0.0, 1.5)
+  hpbf = TH1F('hpbf', 'hpbf', 50, 0.0, 1.5)
+  hpbs = TH1F('hpbs', 'hpbs', 50, 0.0, 1.5)
+  hpbe = TH1F('hpbe', 'hpbe', 50, 0.0, 1.5)
+
+  for i in xrange(tf.GetEntries()):
+    tf.GetEntry(i)
+    hpf.Fill(fpm[0])
+    hpbf.Fill(fpbm[0])
+
+  for i in xrange(ts.GetEntries()):
+    ts.GetEntry(i)
+    hps.Fill(spm[0])
+    hpbs.Fill(spbm[0])
+
+  hpe.Divide(hps, hpf, 1, 1, 'B')
+  hpe.SetMarkerStyle(23)
+  hpe.SetLineColor(2)
+  hpbe.Divide(hpbs, hpbf, 1, 1, 'B')
+  hpbe.SetMarkerStyle(22)
+  hpbe.SetLineColor(4)
+  #hpbe.SetDrawOption('p')
+
+  ps = TPostScript('eff.ps')
+  c = TCanvas()
+  ps.NewPage()
+  hpe.Draw('p')
+  hpbe.Draw('same')
+
+  #c.Update()
+  #ps.NewPage()
+
+  ps.Close()
+  ff.Close()
+  fs.Close()
+

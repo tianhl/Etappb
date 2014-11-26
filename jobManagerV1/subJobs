@@ -1,0 +1,53 @@
+#! /usr/bin/python
+import os
+import sys
+import commands
+
+def echoMac():
+  fileNum = 0
+  for eachFile in os.listdir('macDir'):
+    print eachFile
+    fileNum += 1
+    if fileNum % 11 == 0:
+      print '+++++++++++++++++++++++++++++++++++++++'
+  
+  print 'file number: ', fileNum  
+
+def createSh():
+  cmd = 'rm shDir/* -f'
+  os.system(cmd)
+
+  allMacs = os.listdir('macDir')
+  
+  lineNo = 0
+  for eachMac in allMacs:
+    aLine = 'cct /ihepbatch/bes/tianhl/geant4/cctsim/test/testrelease/macDir/' \
+	+ allMacs[lineNo] + '\n'
+    s_lineNo = '%d' % lineNo
+    runFile = open("shDir/run" + s_lineNo, "w")
+    runFile.writelines( aLine)
+    runFile.close()
+    lineNo += 1
+
+  os.system('chmod u+x shDir/*')  
+
+def executeSh():
+  outputStrs = []
+  for eachFile in os.listdir('shDir'):
+    cmd = 'qsub -q bes3q shDir/' + eachFile
+    cmdOutput = commands.getoutput(cmd)
+    temp = cmdOutput.split('.')
+    temp[0] = temp[0] + '  Q  ' + eachFile +  '\n'
+    outputStrs.append(temp[0])
+  
+  logFile = open("qExeLog.txt", 'w')
+  logFile.writelines( outputStrs)
+  logFile.close()
+
+def test():
+  #echoMac()
+  createSh()
+  executeSh()
+
+if __name__ == "__main__":
+  test()

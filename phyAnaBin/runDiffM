@@ -1,0 +1,95 @@
+#! /usr/bin/python
+def cal(line):
+  list = line.split()    
+  list = map(lambda item: float(item), list)
+  return list
+
+if __name__ == '__main__':
+  import sys, os
+  if len(sys.argv) < 2:
+    print 'arguments error'
+    sys.exit()
+    
+  fo = open(sys.argv[1], 'r')
+  i = 0
+  j = 0
+  from ROOT import gStyle, TH1F, TPostScript, TCanvas
+  gStyle.SetOptStat(111111)
+  px = TH1F('px', 'px', 50, -0.015, 0.015)
+  py = TH1F('py', 'py', 50, -0.015, 0.015)
+  pz = TH1F('pz', 'pz', 50, -0.015, 0.015)
+  pe = TH1F('pe', 'pe', 50, -0.015, 0.015)
+  pbx = TH1F('pbx', 'pbx', 50, -0.015, 0.015)
+  pby = TH1F('pby', 'pby', 50, -0.015, 0.015)
+  pbz = TH1F('pbz', 'pbz', 50, -0.015, 0.015)
+  pbe = TH1F('pbe', 'pbe', 50, -0.015, 0.015)
+  while True:
+    line = fo.readline()
+    if len(line) <= 0:
+      break
+    i = i + 1
+    j = j + 1
+    if j == 1:
+      # p
+      list = cal(line)
+      px.Fill(list[0])
+      py.Fill(list[1])
+      pz.Fill(list[2])
+      pe.Fill(list[3])
+      pass
+    if j == 2:
+      # pb
+      j = 0
+      list = cal(line)
+      pbx.Fill(list[0])
+      pby.Fill(list[1])
+      pbz.Fill(list[2])
+      pbe.Fill(list[3])
+      pass
+  ps = TPostScript('diff.ps')
+  c = TCanvas()
+  ps.NewPage()
+  px.Fit('gaus')
+  #px.Draw('epl')
+  c.Update()
+  ps.NewPage()
+
+  py.Fit('gaus')
+  #py.Draw('epl')
+  c.Update()
+  ps.NewPage()
+ 
+  pz.Fit('gaus')
+  #pz.Draw('epl')
+  c.Update()
+  ps.NewPage()
+  
+  pe.Fit('gaus')
+  #pe.Draw('epl')
+  c.Update()
+  ps.NewPage()
+  
+  pbx.Fit('gaus')
+  #pbx.Draw('epl')
+  c.Update()
+  ps.NewPage()
+  
+  pby.Fit('gaus')
+  #pby.Draw('epl')
+  c.Update()
+  ps.NewPage()
+  
+  pbz.Fit('gaus')
+  #pbz.Draw('epl')
+  c.Update()
+  ps.NewPage()
+  
+  pbe.Fit('gaus')
+  #pbe.Draw('epl')
+
+  ps.Close()
+
+#  import time
+#  while True:
+#    time.sleep(1)
+#
